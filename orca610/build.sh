@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
-unset no_proxy ftp_proxy http_proxy https_proxy all_proxy rsync_proxy
-unset NO_PROXY FTP_PROXY HTTP_PROXY HTTPS_PROXY ALL_PROXY RSYNC_PROXY
-sudo apptainer build orca610.sif orca610.def
+sudo env -u http_proxy -u https_proxy -u ftp_proxy -u all_proxy -u no_proxy \
+         -u HTTP_PROXY -u HTTPS_PROXY -u FTP_PROXY -u ALL_PROXY -u NO_PROXY \
+  apptainer build orca610.sif orca610.def
