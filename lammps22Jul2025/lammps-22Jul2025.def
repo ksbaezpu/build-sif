@@ -36,16 +36,16 @@ Stage: build
     mkdir -p /opt/lammps-22Jul2025/build
     cd /opt/lammps-22Jul2025/build
     cmake ../cmake \
-    -DCMAKE_INSTALL_PREFIX=/opt/lammps \
-    -DPKG_REAXFF=ON \
-    -DPKG_MANYBODY=ON \
-    -DPKG_KSPACE=ON \
-    -DPKG_MOLECULE=ON \
-    -DBUILD_MPI=ON \
-    -DBUILD_SHARED_LIBS=ON \
-    -DPKG_PYTHON=ON \
-    -DPython_EXECUTABLE=/opt/venv/bin/python3 \
-    -DPKG_KIM=ON
+      -DCMAKE_INSTALL_PREFIX=/opt/lammps \
+      -DPKG_REAXFF=ON \
+      -DPKG_MANYBODY=ON \
+      -DPKG_KSPACE=ON \
+      -DPKG_MOLECULE=ON \
+      -DBUILD_MPI=ON \
+      -DBUILD_SHARED_LIBS=ON \
+      -DPKG_PYTHON=ON \
+      -DPython_EXECUTABLE=/opt/venv/bin/python3 \
+      -DPKG_KIM=ON
 
     cmake --build . -j$(nproc)
     make install
