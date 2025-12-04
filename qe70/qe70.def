@@ -1,0 +1,80 @@
+# ---------- Stage 1: build ----------
+Bootstrap: docker-archive
+From: ./debian13.2.tar
+Stage: build
+
+%labels
+    Maintainer yangys
+    Build Quantum ESPRESSO 7.0 in debian 13.2
+
+%files
+    ./q-e-qe-7.0.tar.gz /opt
+
+%post
+    sed -i 's|deb.debian.org|mirrors.ustc.edu.cn|g' /etc/apt/sources.list.d/debian.sources
+    sed -i 's|security.debian.org/debian-security|mirrors.ustc.edu.cn/debian-security|g' /etc/apt/sources.list.d/debian.sources
+
+    apt-get update && apt-get install -y \
+      build-essential gfortran \
+      git wget curl \
+      cmake make \
+      openmpi-bin libopenmpi-dev \
+      libopenblas0-openmp libopenblas-dev \
+      libfftw3-dev \
+      libscalapack-openmpi2.2 \
+      libelpa-dev \
+      liblapack-dev libblas-dev
+
+    tar -xf /opt/q-e-qe-7.0.tar.gz -C /opt
+
+    mkdir -p /opt/qe70
+    cd /opt/q-e-qe-7.0
+
+    BLAS_LIBS="-lopenblas" \
+    LAPACK_LIBS="-lopenblas" \
+    FFT_LIBS="-lfftw3" \
+    ./configure \
+      MPIF90=mpif90 CC=mpicc FC=mpif90 \
+      --enable-parallel \
+      --with-scalapack \
+      --prefix=/opt/qe70
+    sed -i 's/DFLAGS         =  -D__MPI/DFLAGS         =  -D__MPI -D__FFTW3/' /opt/q-e-qe-7.0/make.inc
+    make all -j$(nproc)
+    make install
+
+# ---------- Stage 2: final runtime image ----------
+Bootstrap: docker-archive
+From: ./debian13.2.tar
+Stage: runtime
+
+%labels
+    Maintainer yangys
+    App Quantum ESPRESSO 7.0 in debian 13.2
+
+%files from build
+    /opt/qe70 /opt/qe70
+
+%post
+    sed -i 's|deb.debian.org|mirrors.ustc.edu.cn|g' /etc/apt/sources.list.d/debian.sources
+    sed -i 's|security.debian.org/debian-security|mirrors.ustc.edu.cn/debian-security|g' /etc/apt/sources.list.d/debian.sources
+
+    apt-get update && apt-get install -y \
+      openmpi-bin \
+      libopenblas0-openmp \
+      libfftw3-double3 \
+      libscalapack-openmpi2.2 \
+      libelpa19 \
+      quantum-espresso-data
+
+    apt-get autoremove -y
+    apt-get clean
+    rm -rf /var/lib/apt/lists/* /root/.cache
+
+%environment
+    export PATH=$PATH:/opt/qe70/bin
+    export OMP_NUM_THREADS=1 # mpi priority
+    export OMPI_ALLOW_RUN_AS_ROOT=1
+    export OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+
+%runscript
+    exec pw.x "$@"

@@ -19,6 +19,7 @@ psi4-191/
 wannier90-310/
 qe-apt/
 xtb-crest-edge/
+qe70/
 ```
 
 ## Usage
